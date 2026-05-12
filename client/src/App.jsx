@@ -1,6 +1,17 @@
 import { useState } from "react";
-import ReactCrop from "react-image-crop";
-import "react-image-crop/dist/ReactCrop.css";
+import ImageUploader from "./components/ImageUploader";
+import ImageCropper from "./components/ImageCropper";
+import ActionButtons from "./components/ActionButtons";
+import ResultPreview from "./components/ResultPreview";
+import {
+  createImageFormData,
+  previewImage,
+  generateImage,
+  createConfigFormData,
+  saveConfig,
+} from "./api/imageApi";
+import { getRealCrop } from "./utils/cropUtils";
+import ConfigForm from "./components/ConfigForm";
 
 function App() {
  
@@ -17,9 +28,9 @@ function App() {
     height: 50,
   });
 
-  /*
-    Ova funkcija se pokreće kada korisnik izabere glavnu sliku.
-  */
+const [configMessage, setConfigMessage] = useState("");
+
+
   function handleImageChange(event) {
     const selectedFile = event.target.files[0];
 
@@ -54,207 +65,112 @@ function App() {
     });
   }
 
-  /*
-    ReactCrop radi nad prikazanom slikom u browseru.
-    Backend, međutim, cropuje originalnu sliku.
 
-    Zato moramo procente iz croppera pretvoriti u stvarne piksele originalne slike.
-    Ako je crop.width = 50, to znači 50% originalne širine slike.
-  */
-  function getRealCrop() {
-    if (!imageElement || !crop.width || !crop.height) {
-      return null;
+  async function handleSaveConfig(configData) {
+    try {
+      const formData = createConfigFormData(configData);
+      const result = await saveConfig(formData);
+
+      setConfigMessage(`Config saved. ID: ${result.config.id}`);
+    } catch (error) {
+      alert(error.message);
     }
-
-    return {
-      x: Math.round((crop.x / 100) * imageElement.naturalWidth),
-      y: Math.round((crop.y / 100) * imageElement.naturalHeight),
-      width: Math.round((crop.width / 100) * imageElement.naturalWidth),
-      height: Math.round((crop.height / 100) * imageElement.naturalHeight),
-    };
   }
 
-  /*
-    Ova pomoćna funkcija pravi FormData objekat.
-    FormData koristimo zato što šaljemo i fajl i obične tekstualne podatke.
-    To je isto ono što smo ručno radili u Postmanu kroz form-data.
-  */
-  function createImageFormData(realCrop) {
-    const formData = new FormData();
 
-    formData.append("image", image);
-    formData.append("x", realCrop.x);
-    formData.append("y", realCrop.y);
-    formData.append("width", realCrop.width);
-    formData.append("height", realCrop.height);
 
-    return formData;
-  }
+ async function handlePreview() {
+   if (!image) {
+     alert("Prvo odaberi sliku.");
+     return;
+   }
 
-  /*
-    Poziva backend preview endpoint.
-    Backend vraća malu cropovanu PNG sliku, skaliranu na 5%.
-  */
-  async function handlePreview() {
-    if (!image) {
-      alert("Prvo odaberi sliku.");
-      return;
-    }
+const realCrop = getRealCrop(imageElement, crop);
+   if (!realCrop) {
+     alert("Prvo označi crop područje.");
+     return;
+   }
 
-    const realCrop = getRealCrop();
+   try {
+     const formData = createImageFormData(image, realCrop);
+     const imageBlob = await previewImage(formData);
 
-    if (!realCrop) {
-      alert("Prvo označi crop područje.");
-      return;
-    }
+     const imageUrl = URL.createObjectURL(imageBlob);
+     setPreviewResult(imageUrl);
+   } catch (error) {
+     alert(error.message);
+   }
+ }
 
-    const formData = createImageFormData(realCrop);
+ async function handleGenerate() {
+   if (!image) {
+     alert("Prvo odaberi sliku.");
+     return;
+   }
 
-    const response = await fetch("http://localhost:5000/api/image/preview", {
-      method: "POST",
-      body: formData,
-    });
+const realCrop = getRealCrop(imageElement, crop);
+   if (!realCrop) {
+     alert("Prvo označi crop područje.");
+     return;
+   }
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      alert(errorData.message || "Greška pri preview obradi slike.");
-      return;
-    }
+   try {
+     const formData = createImageFormData(image, realCrop);
+     const imageBlob = await generateImage(formData);
 
-    const imageBlob = await response.blob();
-    const imageUrl = URL.createObjectURL(imageBlob);
+     const imageUrl = URL.createObjectURL(imageBlob);
+     setGeneratedImage(imageUrl);
+   } catch (error) {
+     alert(error.message);
+   }
+ }
 
-    setPreviewResult(imageUrl);
-  }
+ function handleDownload() {
+   if (!generatedImage) {
+     alert("Prvo generiši sliku.");
+     return;
+   }
 
-  /*
-    Poziva backend generate endpoint.
-    Backend vraća finalnu cropovanu PNG sliku, u punoj kvaliteti, sa logo overlay-em.
-    Važno: prije ovoga mora biti kreirana konfiguracija na /api/config.
-  */
-  async function handleGenerate() {
-    if (!image) {
-      alert("Prvo odaberi sliku.");
-      return;
-    }
-
-    const realCrop = getRealCrop();
-
-    if (!realCrop) {
-      alert("Prvo označi crop područje.");
-      return;
-    }
-
-    const formData = createImageFormData(realCrop);
-
-    const response = await fetch("http://localhost:5000/api/image/generate", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      alert(errorData.message || "Greška pri generisanju slike.");
-      return;
-    }
-
-    const imageBlob = await response.blob();
-    const imageUrl = URL.createObjectURL(imageBlob);
-
-    setGeneratedImage(imageUrl);
-  }
-
-  /*
-    Download funkcija pravi privremeni <a> element i programatski klikne na njega.
-    Tako korisnik može preuzeti finalnu generisanu sliku.
-  */
-  function handleDownload() {
-    if (!generatedImage) {
-      alert("Prvo generiši sliku.");
-      return;
-    }
-
-    const link = document.createElement("a");
-    link.href = generatedImage;
-    link.download = "cropped-image.png";
-    link.click();
-  }
+   const link = document.createElement("a");
+   link.href = generatedImage;
+   link.download = "cropped-image.png";
+   link.click();
+ }
 
   return (
     <main style={{ padding: "24px", fontFamily: "Arial, sans-serif" }}>
       <h1>Image Cropper App</h1>
 
-      <section style={{ marginBottom: "20px" }}>
-        <label>
-          Upload image:{" "}
-          <input type="file" accept="image/*" onChange={handleImageChange} />
-        </label>
-      </section>
+      <ConfigForm onSaveConfig={handleSaveConfig} />
 
-      {imagePreview && (
-        <section style={{ marginBottom: "20px" }}>
-          <h2>Select crop area</h2>
+      {configMessage && <p>{configMessage}</p>}
 
-          <ReactCrop
-            crop={crop}
-            onChange={(pixelCrop, percentCrop) => setCrop(percentCrop)}
-          >
-            <img
-              ref={(img) => setImageElement(img)}
-              src={imagePreview}
-              alt="Selected preview"
-              style={{
-                maxWidth: "500px",
-                marginTop: "10px",
-                display: "block",
-              }}
-            />
-          </ReactCrop>
+      <ImageUploader onImageChange={handleImageChange} />
+      <ImageCropper
+        imagePreview={imagePreview}
+        crop={crop}
+        setCrop={setCrop}
+        setImageElement={setImageElement}
+      />
 
-          <p>
-            Crop: x={Math.round(crop.x)}%, y={Math.round(crop.y)}%, width=
-            {Math.round(crop.width)}%, height={Math.round(crop.height)}%
-          </p>
-        </section>
-      )}
+      <ActionButtons
+        onPreview={handlePreview}
+        onGenerate={handleGenerate}
+        onDownload={handleDownload}
+        generatedImage={generatedImage}
+      />
 
-      <section style={{ marginBottom: "20px" }}>
-        <button onClick={handlePreview}>Show Preview</button>
-        <button onClick={handleGenerate} style={{ marginLeft: "10px" }}>
-          Generate
-        </button>
-      </section>
+      <ResultPreview
+        title="Backend Preview"
+        image={previewResult}
+        width="150px"
+      />
 
-      {previewResult && (
-        <section style={{ marginBottom: "20px" }}>
-          <h2>Backend Preview</h2>
-          <img
-            src={previewResult}
-            alt="Backend preview"
-            style={{
-              width: "150px",
-              border: "1px solid #ccc",
-            }}
-          />
-        </section>
-      )}
-
-      {generatedImage && (
-        <section>
-          <h2>Generated Image</h2>
-          <img
-            src={generatedImage}
-            alt="Generated result"
-            style={{
-              maxWidth: "400px",
-              display: "block",
-              marginBottom: "10px",
-            }}
-          />
-
-          <button onClick={handleDownload}>Download Image</button>
-        </section>
-      )}
+      <ResultPreview
+        title="Generated Image"
+        image={generatedImage}
+        width="400px"
+      />
     </main>
   );
 }
