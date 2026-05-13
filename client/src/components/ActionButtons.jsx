@@ -5,18 +5,12 @@ const ActionButtons = ({
   generatedImage,
 }) => {
   return (
-    <section style={{ marginBottom: "20px" }}>
+    <section className="button-group">
       <button onClick={onPreview}>Show Preview</button>
 
-      <button onClick={onGenerate} style={{ marginLeft: "10px" }}>
-        Generate
-      </button>
+      <button onClick={onGenerate}>Generate</button>
 
-      {generatedImage && (
-        <button onClick={onDownload} style={{ marginLeft: "10px" }}>
-          Download Image
-        </button>
-      )}
+      {generatedImage && <button onClick={onDownload}>Download Image</button>}
     </section>
   );
 };

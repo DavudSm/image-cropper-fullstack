@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const ConfigForm = ({ onSaveConfig }) => {
   const [logoImage, setLogoImage] = useState(null);
@@ -21,22 +22,25 @@ const ConfigForm = ({ onSaveConfig }) => {
   }
 
   return (
-    <section style={{ marginBottom: "20px" }}>
+    <section className="card">
       <h2>Logo configuration</h2>
 
       <form onSubmit={handleSubmit}>
-        <div>
+        <div className="form-row">
           <label>
-            Logo image:{" "}
+            Logo image:
             <input
               type="file"
               accept="image/png"
-              onChange={(event) => setLogoImage(event.target.files[0])}
+              onChange={(event) => {
+                setLogoImage(event.target.files[0]);
+                toast.success("Logo image uploaded successfully.");
+              }}
             />
           </label>
         </div>
 
-        <div>
+        <div className="form-row">
           <label>
             Scale down:
             <input
@@ -50,12 +54,19 @@ const ConfigForm = ({ onSaveConfig }) => {
           </label>
         </div>
 
-        <div>
+        <div className="form-row">
           <label>
             Logo position:
             <select
               value={logoPosition}
               onChange={(event) => setLogoPosition(event.target.value)}
+              style={{
+                backgroundColor: "#1e293b",
+                color: "white",
+                padding: "10px 12px",
+                borderRadius: "10px",
+                border: "1px solid rgba(255,255,255,0.12)",
+              }}
             >
               <option value="top-left">Top left</option>
               <option value="top-right">Top right</option>

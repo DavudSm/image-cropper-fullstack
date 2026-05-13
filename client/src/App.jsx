@@ -12,14 +12,16 @@ import {
 } from "./api/imageApi";
 import { getRealCrop } from "./utils/cropUtils";
 import ConfigForm from "./components/ConfigForm";
+import "./index.css";
+import { ToastContainer, toast } from "react-toastify";
 
 function App() {
- 
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [previewResult, setPreviewResult] = useState(null);
   const [generatedImage, setGeneratedImage] = useState(null);
   const [imageElement, setImageElement] = useState(null);
+
   const [crop, setCrop] = useState({
     unit: "%",
     x: 0,
@@ -28,34 +30,22 @@ function App() {
     height: 50,
   });
 
-const [configMessage, setConfigMessage] = useState("");
-
+  const [configMessage, setConfigMessage] = useState("");
 
   function handleImageChange(event) {
     const selectedFile = event.target.files[0];
 
-    if (!selectedFile) {
-      return;
-    }
+    if (!selectedFile) return;
 
     setImage(selectedFile);
 
-    /*
-      URL.createObjectURL pravi privremeni lokalni URL za odabrani fajl.
-      To nije upload na backend; to je samo lokalni preview u browseru.
-    */
     const previewUrl = URL.createObjectURL(selectedFile);
     setImagePreview(previewUrl);
+    toast.success("Image uploaded successfully.");
 
-    /*
-      Kada korisnik izabere novu sliku, resetujemo stare rezultate.
-    */
     setPreviewResult(null);
     setGeneratedImage(null);
 
-    /*
-      Postavljamo početni crop na 50% slike.
-    */
     setCrop({
       unit: "%",
       x: 0,
@@ -65,87 +55,90 @@ const [configMessage, setConfigMessage] = useState("");
     });
   }
 
+async function handleSaveConfig(configData) {
+  try {
+    const formData = createConfigFormData(configData);
+    const result = await saveConfig(formData);
 
-  async function handleSaveConfig(configData) {
-    try {
-      const formData = createConfigFormData(configData);
-      const result = await saveConfig(formData);
+    setConfigMessage(`Config saved. ID: ${result.config.id}`);
+    toast.success("Logo config saved successfully.");
+  } catch (error) {
+    toast.error(error.message);
+  }
+}
 
-      setConfigMessage(`Config saved. ID: ${result.config.id}`);
-    } catch (error) {
-      alert(error.message);
-    }
+async function handlePreview() {
+  if (!image) {
+    toast.error("Please select an image first.");
+    return;
   }
 
+  const realCrop = getRealCrop(imageElement, crop);
 
+  if (!realCrop) {
+    toast.error("Please select a crop area first.");
+    return;
+  }
 
- async function handlePreview() {
-   if (!image) {
-     alert("Prvo odaberi sliku.");
-     return;
-   }
+  try {
+    const formData = createImageFormData(image, realCrop);
+    const imageBlob = await previewImage(formData);
 
-const realCrop = getRealCrop(imageElement, crop);
-   if (!realCrop) {
-     alert("Prvo označi crop područje.");
-     return;
-   }
+    const imageUrl = URL.createObjectURL(imageBlob);
+    setPreviewResult(imageUrl);
+    toast.success("Preview generated successfully.");
+  } catch (error) {
+    toast.error(error.message);
+  }
+}
 
-   try {
-     const formData = createImageFormData(image, realCrop);
-     const imageBlob = await previewImage(formData);
+async function handleGenerate() {
+  if (!image) {
+    toast.error("Please select an image first.");
+    return;
+  }
 
-     const imageUrl = URL.createObjectURL(imageBlob);
-     setPreviewResult(imageUrl);
-   } catch (error) {
-     alert(error.message);
-   }
- }
+  const realCrop = getRealCrop(imageElement, crop);
 
- async function handleGenerate() {
-   if (!image) {
-     alert("Prvo odaberi sliku.");
-     return;
-   }
+  if (!realCrop) {
+    toast.error("Please select a crop area first.");
+    return;
+  }
 
-const realCrop = getRealCrop(imageElement, crop);
-   if (!realCrop) {
-     alert("Prvo označi crop područje.");
-     return;
-   }
+  try {
+    const formData = createImageFormData(image, realCrop);
+    const imageBlob = await generateImage(formData);
 
-   try {
-     const formData = createImageFormData(image, realCrop);
-     const imageBlob = await generateImage(formData);
+    const imageUrl = URL.createObjectURL(imageBlob);
+    setGeneratedImage(imageUrl);
+    toast.success("Image generated successfully.");
+  } catch (error) {
+    toast.error(error.message);
+  }
+}
+function handleDownload() {
+  if (!generatedImage) {
+    toast.error("Please generate an image first.");
+    return;
+  }
 
-     const imageUrl = URL.createObjectURL(imageBlob);
-     setGeneratedImage(imageUrl);
-   } catch (error) {
-     alert(error.message);
-   }
- }
+  const link = document.createElement("a");
+  link.href = generatedImage;
+  link.download = "cropped-image.png";
+  link.click();
 
- function handleDownload() {
-   if (!generatedImage) {
-     alert("Prvo generiši sliku.");
-     return;
-   }
-
-   const link = document.createElement("a");
-   link.href = generatedImage;
-   link.download = "cropped-image.png";
-   link.click();
- }
-
+  toast.success("Image downloaded successfully.");
+}
   return (
-    <main style={{ padding: "24px", fontFamily: "Arial, sans-serif" }}>
-      <h1>Image Cropper App</h1>
+    <main className="app">
+      <h1 className="app-title">Image Cropper App</h1>
 
       <ConfigForm onSaveConfig={handleSaveConfig} />
 
-      {configMessage && <p>{configMessage}</p>}
+      {configMessage && <p className="status-message">{configMessage}</p>}
 
       <ImageUploader onImageChange={handleImageChange} />
+
       <ImageCropper
         imagePreview={imagePreview}
         crop={crop}
@@ -163,14 +156,16 @@ const realCrop = getRealCrop(imageElement, crop);
       <ResultPreview
         title="Backend Preview"
         image={previewResult}
-        width="150px"
+        className="backend-preview-image"
       />
 
       <ResultPreview
         title="Generated Image"
         image={generatedImage}
-        width="400px"
+        className="result-image"
       />
+
+      <ToastContainer position="top-right" theme="dark" />
     </main>
   );
 }

@@ -1,10 +1,14 @@
 const ImageUploader = ({ onImageChange }) => {
   return (
-    <section style={{ marginBottom: "20px" }}>
-      <label>
-        Upload image:{" "}
-        <input type="file" accept="image/*" onChange={onImageChange} />
-      </label>
+    <section className="card">
+      <h2>Upload Image</h2>
+
+      <div className="form-row">
+        <label>
+          Select image:
+          <input type="file" accept="image/*" onChange={onImageChange} />
+        </label>
+      </div>
     </section>
   );
 };
