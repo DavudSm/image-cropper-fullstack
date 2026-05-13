@@ -10,7 +10,7 @@ const ConfigForm = ({ onSaveConfig }) => {
     event.preventDefault();
 
     if (!logoImage) {
-      alert("Prvo odaberi logo sliku.");
+       toast.error("Please select an logo image first.");
       return;
     }
 
