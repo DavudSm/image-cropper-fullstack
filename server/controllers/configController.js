@@ -1,4 +1,4 @@
-import { createConfig, findConfigById } from "../data/configStore.js";
+import prisma from "../lib/prisma.js";
 
 const allowedLogoPositions = [
   "top-left",
@@ -8,7 +8,7 @@ const allowedLogoPositions = [
   "center",
 ];
 
-export function createConfigController(req, res) {
+export async function createConfigController(req, res) {
   const { scaleDown, logoPosition } = req.body;
 
   const parsedScaleDown = Number(scaleDown);
@@ -38,11 +38,13 @@ export function createConfigController(req, res) {
     });
   }
 
-  const config = createConfig({
+const config = await prisma.config.create({
+  data: {
     scaleDown: parsedScaleDown,
     logoPosition,
     logoImagePath: req.file.path,
-  });
+  },
+});
 
   return res.status(201).json({
     message: "Configuration created successfully.",
@@ -50,12 +52,16 @@ export function createConfigController(req, res) {
   });
 }
 
-export function updateConfigController(req, res) {
+export async function updateConfigController(req, res) {
   const configId = Number(req.params.id);
 
   const { scaleDown, logoPosition } = req.body;
 
-  const config = findConfigById(configId);
+const config = await prisma.config.findUnique({
+  where: {
+    id: configId,
+  },
+});
 
   if (!config) {
     return res.status(404).json({
@@ -63,11 +69,18 @@ export function updateConfigController(req, res) {
     });
   }
 
-  config.scaleDown = Number(scaleDown);
-  config.logoPosition = logoPosition;
+const updatedConfig = await prisma.config.update({
+  where: {
+    id: configId,
+  },
+  data: {
+    scaleDown: Number(scaleDown),
+    logoPosition,
+  },
+});
 
   return res.json({
     message: "Configuration updated successfully.",
-    config,
+    updatedConfig,
   });
 }

@@ -3,7 +3,7 @@ import fs from "fs";
 
 import { validateCropRequest, validateCropBounds } from "../utils/cropUtils.js";
 
-import { getLatestConfig } from "../data/configStore.js";
+import prisma from "../lib/prisma.js";
 
 import { getLogoPosition } from "../utils/logoUtils.js";
 
@@ -73,7 +73,12 @@ export async function generateImageController(req, res) {
         .json(boundsValidation.error);
     }
 
-    const config = getLatestConfig();
+    
+const config = await prisma.config.findFirst({
+  orderBy: {
+    createdAt: "desc",
+  },
+});
 
     if (!config) {
       return res.status(400).json({

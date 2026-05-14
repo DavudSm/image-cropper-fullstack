@@ -1,19 +1,15 @@
+import prisma from "../lib/prisma.js";
+
 let configs = [];
 let nextConfigId = 1;
 
-export function createConfig({ scaleDown, logoPosition, logoImagePath }) {
-  const config = {
-    id: nextConfigId,
-    scaleDown,
+const config = await prisma.config.create({
+  data: {
+    scaleDown: parsedScaleDown,
     logoPosition,
-    logoImagePath,
-  };
-
-  configs.push(config);
-  nextConfigId++;
-
-  return config;
-}
+    logoImagePath: req.file.path,
+  },
+});
 
 export function findConfigById(id) {
   return configs.find((config) => config.id === id);

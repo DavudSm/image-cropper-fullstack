@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Config {
+  id            Int      @id @default(autoincrement())
+  scaleDown     Float
+  logoPosition  String
+  logoImagePath String
+  createdAt     DateTime @default(now())
+}
