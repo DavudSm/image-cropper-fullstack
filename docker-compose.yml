@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres
+    container_name: image-cropper-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: image_cropper_db
+    ports:
+      - "5433:5432"
+
+  backend:
+    build: ./server
+    container_name: image-cropper-backend
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/image_cropper_db
+    command: sh -c "npx prisma migrate deploy && npm run dev"
+    depends_on:
+      - postgres
+
+  frontend:
+    build: ./client
+    container_name: image-cropper-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
