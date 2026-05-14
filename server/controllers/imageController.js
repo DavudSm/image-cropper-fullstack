@@ -74,12 +74,23 @@ export async function generateImageController(req, res) {
     }
 
     
-const config = await prisma.config.findFirst({
-  orderBy: {
-    createdAt: "desc",
-  },
-});
+const { configId } = req.body;
 
+let config;
+
+if (configId) {
+  config = await prisma.config.findUnique({
+    where: {
+      id: Number(configId),
+    },
+  });
+} else {
+  config = await prisma.config.findFirst({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
     if (!config) {
       return res.status(400).json({
         message: "Configuration has not been created.",

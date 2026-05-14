@@ -38,13 +38,13 @@ export async function createConfigController(req, res) {
     });
   }
 
-const config = await prisma.config.create({
-  data: {
-    scaleDown: parsedScaleDown,
-    logoPosition,
-    logoImagePath: req.file.path,
-  },
-});
+  const config = await prisma.config.create({
+    data: {
+      scaleDown: parsedScaleDown,
+      logoPosition,
+      logoImagePath: req.file.path,
+    },
+  });
 
   return res.status(201).json({
     message: "Configuration created successfully.",
@@ -57,11 +57,11 @@ export async function updateConfigController(req, res) {
 
   const { scaleDown, logoPosition } = req.body;
 
-const config = await prisma.config.findUnique({
-  where: {
-    id: configId,
-  },
-});
+  const config = await prisma.config.findUnique({
+    where: {
+      id: configId,
+    },
+  });
 
   if (!config) {
     return res.status(404).json({
@@ -69,18 +69,30 @@ const config = await prisma.config.findUnique({
     });
   }
 
-const updatedConfig = await prisma.config.update({
-  where: {
-    id: configId,
-  },
-  data: {
-    scaleDown: Number(scaleDown),
-    logoPosition,
-  },
-});
+  const updatedConfig = await prisma.config.update({
+    where: {
+      id: configId,
+    },
+    data: {
+      scaleDown: Number(scaleDown),
+      logoPosition,
+    },
+  });
 
   return res.json({
     message: "Configuration updated successfully.",
     updatedConfig,
+  });
+}
+
+export async function getConfigsController(req, res) {
+  const configs = await prisma.config.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return res.json({
+    configs,
   });
 }

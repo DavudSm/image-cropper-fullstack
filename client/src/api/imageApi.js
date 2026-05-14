@@ -1,4 +1,4 @@
-export const createImageFormData = (image, crop) => {
+export const createImageFormData = (image, crop, configId) => {
   const formData = new FormData();
 
   formData.append("image", image);
@@ -6,6 +6,10 @@ export const createImageFormData = (image, crop) => {
   formData.append("y", crop.y);
   formData.append("width", crop.width);
   formData.append("height", crop.height);
+
+   if (configId) {
+     formData.append("configId", configId);
+   }
 
   return formData;
 };
@@ -64,6 +68,18 @@ export const saveConfig = async (formData) => {
     const errorData = await response.json();
 
     throw new Error(errorData.message || "Greška pri čuvanju konfiguracije.");
+  }
+
+  return await response.json();
+};
+
+export const getConfigs = async () => {
+  const response = await fetch("http://localhost:5000/api/config");
+
+  if (!response.ok) {
+    const errorData = await response.json();
+
+    throw new Error(errorData.message || "Error while loading configurations.");
   }
 
   return await response.json();

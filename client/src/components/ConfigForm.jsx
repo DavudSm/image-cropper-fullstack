@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 
-const ConfigForm = ({ onSaveConfig }) => {
+const ConfigForm = ({ onSaveConfig,
+  configs,
+  selectedConfigId,
+  setSelectedConfigId }) => {
   const [logoImage, setLogoImage] = useState(null);
   const [scaleDown, setScaleDown] = useState(0.2);
   const [logoPosition, setLogoPosition] = useState("bottom-right");
@@ -24,6 +27,34 @@ const ConfigForm = ({ onSaveConfig }) => {
   return (
     <section className="card">
       <h2>Logo configuration</h2>
+
+      {configs.length > 0 && (
+        <div className="form-row">
+          <label>
+            Existing configs:
+            <select
+              value={selectedConfigId}
+              onChange={(event) => setSelectedConfigId(event.target.value)}
+              style={{
+                backgroundColor: "#1e293b",
+                color: "white",
+                padding: "10px 12px",
+                borderRadius: "10px",
+                border: "1px solid rgba(255,255,255,0.12)",
+              }}
+            >
+              <option value="">Use latest config</option>
+
+              {configs.map((config) => (
+                <option key={config.id} value={config.id}>
+                  ID {config.id} - {config.logoPosition} - scale{" "}
+                  {config.scaleDown}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit}>
         <div className="form-row">

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import ImageUploader from "./components/ImageUploader";
 import ImageCropper from "./components/ImageCropper";
 import ActionButtons from "./components/ActionButtons";
@@ -9,11 +8,14 @@ import {
   generateImage,
   createConfigFormData,
   saveConfig,
+  getConfigs,
 } from "./api/imageApi";
 import { getRealCrop } from "./utils/cropUtils";
 import ConfigForm from "./components/ConfigForm";
 import "./index.css";
 import { ToastContainer, toast } from "react-toastify";
+
+import { useState, useEffect } from "react";
 
 function App() {
   const [image, setImage] = useState(null);
@@ -31,6 +33,9 @@ function App() {
   });
 
   const [configMessage, setConfigMessage] = useState("");
+
+  const [configs, setConfigs] = useState([]);
+  const [selectedConfigId, setSelectedConfigId] = useState("");
 
   function handleImageChange(event) {
     const selectedFile = event.target.files[0];
@@ -106,7 +111,7 @@ async function handleGenerate() {
   }
 
   try {
-    const formData = createImageFormData(image, realCrop);
+    const formData = createImageFormData(image, realCrop, selectedConfigId);
     const imageBlob = await generateImage(formData);
 
     const imageUrl = URL.createObjectURL(imageBlob);
@@ -129,11 +134,32 @@ function handleDownload() {
 
   toast.success("Image downloaded successfully.");
 }
+
+
+async function loadConfigs() {
+  try {
+    const data = await getConfigs();
+
+    setConfigs(data.configs);
+  } catch (error) {
+    toast.error(error.message);
+  }
+}
+
+useEffect(() => {
+  loadConfigs();
+}, []);
+
   return (
     <main className="app">
       <h1 className="app-title">Image Cropper App</h1>
 
-      <ConfigForm onSaveConfig={handleSaveConfig} />
+      <ConfigForm
+        onSaveConfig={handleSaveConfig}
+        configs={configs}
+        selectedConfigId={selectedConfigId}
+        setSelectedConfigId={setSelectedConfigId}
+      />
 
       {configMessage && <p className="status-message">{configMessage}</p>}
 
