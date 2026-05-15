@@ -73,6 +73,26 @@ export const saveConfig = async (formData) => {
   return await response.json();
 };
 
+export const updateConfig = async (configId, configData) => {
+  const response = await fetch(`http://localhost:5000/api/config/${configId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      scaleDown: configData.scaleDown,
+      logoPosition: configData.logoPosition,
+    }), 
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Error while updating configuration.");
+  }
+
+  return await response.json();
+};
+
 export const getConfigs = async () => {
   const response = await fetch("http://localhost:5000/api/config");
 

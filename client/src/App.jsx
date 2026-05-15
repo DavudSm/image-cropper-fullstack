@@ -9,6 +9,7 @@ import {
   createConfigFormData,
   saveConfig,
   getConfigs,
+  updateConfig,
 } from "./api/imageApi";
 import { getRealCrop } from "./utils/cropUtils";
 import ConfigForm from "./components/ConfigForm";
@@ -62,16 +63,27 @@ function App() {
 
 async function handleSaveConfig(configData) {
   try {
-    const formData = createConfigFormData(configData);
-    const result = await saveConfig(formData);
+    let result;
 
-    setConfigMessage(`Config saved. ID: ${result.config.id}`);
-    toast.success("Logo config saved successfully.");
+    if (selectedConfigId) {
+      result = await updateConfig(selectedConfigId, configData);
+
+      setConfigMessage(`Config updated. ID: ${result.config.id}`);
+      toast.success("Config updated successfully.");
+    } else {
+      const formData = createConfigFormData(configData);
+      result = await saveConfig(formData);
+
+      setSelectedConfigId(String(result.config.id));
+      setConfigMessage(`Config saved. ID: ${result.config.id}`);
+      toast.success("Logo config saved successfully.");
+    }
+
+    await loadConfigs();
   } catch (error) {
     toast.error(error.message);
   }
 }
-
 async function handlePreview() {
   if (!image) {
     toast.error("Please select an image first.");

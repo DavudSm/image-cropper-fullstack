@@ -81,7 +81,7 @@ export async function updateConfigController(req, res) {
 
   return res.json({
     message: "Configuration updated successfully.",
-    updatedConfig,
+    config :updatedConfig,
   });
 }
 

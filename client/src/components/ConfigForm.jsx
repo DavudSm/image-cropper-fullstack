@@ -1,19 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-const ConfigForm = ({ onSaveConfig,
+const ConfigForm = ({
+  onSaveConfig,
   configs,
   selectedConfigId,
-  setSelectedConfigId }) => {
+  setSelectedConfigId,
+}) => {
   const [logoImage, setLogoImage] = useState(null);
   const [scaleDown, setScaleDown] = useState(0.2);
   const [logoPosition, setLogoPosition] = useState("bottom-right");
 
+  useEffect(() => {
+    if (!selectedConfigId) {
+      setScaleDown(0.2);
+      setLogoPosition("bottom-right");
+      setLogoImage(null);
+      return;
+    }
+
+    const selectedConfig = configs.find(
+      (config) => String(config.id) === String(selectedConfigId),
+    );
+
+    if (!selectedConfig) return;
+
+    setScaleDown(selectedConfig.scaleDown);
+    setLogoPosition(selectedConfig.logoPosition);
+    setLogoImage(null);
+  }, [selectedConfigId, configs]);
+
   function handleSubmit(event) {
     event.preventDefault();
 
-    if (!logoImage) {
-       toast.error("Please select an logo image first.");
+    if (!selectedConfigId && !logoImage) {
+      toast.error("Please select a logo image first.");
       return;
     }
 
@@ -43,7 +64,7 @@ const ConfigForm = ({ onSaveConfig,
                 border: "1px solid rgba(255,255,255,0.12)",
               }}
             >
-              <option value="">Use latest config</option>
+              <option value="">Create new config / Use latest config</option>
 
               {configs.map((config) => (
                 <option key={config.id} value={config.id}>
@@ -57,19 +78,31 @@ const ConfigForm = ({ onSaveConfig,
       )}
 
       <form onSubmit={handleSubmit}>
-        <div className="form-row">
-          <label>
-            Logo image:
-            <input
-              type="file"
-              accept="image/png"
-              onChange={(event) => {
-                setLogoImage(event.target.files[0]);
-                toast.success("Logo image uploaded successfully.");
-              }}
-            />
-          </label>
-        </div>
+        {!selectedConfigId && (
+          <div className="form-row">
+            <label>
+              Logo image:
+              <input
+                type="file"
+                accept="image/png"
+                onChange={(event) => {
+                  const file = event.target.files[0];
+
+                  if (!file) return;
+
+                  setLogoImage(file);
+                  toast.success("Logo image uploaded successfully.");
+                }}
+              />
+            </label>
+          </div>
+        )}
+
+        {selectedConfigId && (
+          <p className="status-message">
+            Updating selected config. Existing logo will be kept.
+          </p>
+        )}
 
         <div className="form-row">
           <label>
@@ -108,7 +141,9 @@ const ConfigForm = ({ onSaveConfig,
           </label>
         </div>
 
-        <button type="submit">Save Config</button>
+        <button type="submit">
+          {selectedConfigId ? "Update Config" : "Save Config"}
+        </button>
       </form>
     </section>
   );
