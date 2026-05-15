@@ -18,7 +18,21 @@ import { ToastContainer, toast } from "react-toastify";
 
 import { useState, useEffect } from "react";
 
+import { useAuth0 } from "@auth0/auth0-react";
+
 function App() {
+
+  const {
+    loginWithRedirect,
+    logout,
+    isAuthenticated,
+    user,
+    isLoading,
+    getAccessTokenSilently,
+  } = useAuth0();
+
+  
+
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [previewResult, setPreviewResult] = useState(null);
@@ -37,6 +51,7 @@ function App() {
 
   const [configs, setConfigs] = useState([]);
   const [selectedConfigId, setSelectedConfigId] = useState("");
+
 
   function handleImageChange(event) {
     const selectedFile = event.target.files[0];
@@ -63,16 +78,18 @@ function App() {
 
 async function handleSaveConfig(configData) {
   try {
+    const token = await getAccessTokenSilently();
+
     let result;
 
     if (selectedConfigId) {
-      result = await updateConfig(selectedConfigId, configData);
+      result = await updateConfig(selectedConfigId, configData, token);
 
       setConfigMessage(`Config updated. ID: ${result.config.id}`);
       toast.success("Config updated successfully.");
     } else {
       const formData = createConfigFormData(configData);
-      result = await saveConfig(formData);
+      result = await saveConfig(formData, token);
 
       setSelectedConfigId(String(result.config.id));
       setConfigMessage(`Config saved. ID: ${result.config.id}`);
@@ -84,6 +101,8 @@ async function handleSaveConfig(configData) {
     toast.error(error.message);
   }
 }
+
+
 async function handlePreview() {
   if (!image) {
     toast.error("Please select an image first.");
@@ -99,7 +118,9 @@ async function handlePreview() {
 
   try {
     const formData = createImageFormData(image, realCrop);
-    const imageBlob = await previewImage(formData);
+   const token = await getAccessTokenSilently();
+
+   const imageBlob = await previewImage(formData, token);
 
     const imageUrl = URL.createObjectURL(imageBlob);
     setPreviewResult(imageUrl);
@@ -124,7 +145,9 @@ async function handleGenerate() {
 
   try {
     const formData = createImageFormData(image, realCrop, selectedConfigId);
-    const imageBlob = await generateImage(formData);
+    const token = await getAccessTokenSilently();
+
+    const imageBlob = await generateImage(formData, token);
 
     const imageUrl = URL.createObjectURL(imageBlob);
     setGeneratedImage(imageUrl);
@@ -150,7 +173,8 @@ function handleDownload() {
 
 async function loadConfigs() {
   try {
-    const data = await getConfigs();
+    const token = await getAccessTokenSilently();
+    const data = await getConfigs(token);
 
     setConfigs(data.configs);
   } catch (error) {
@@ -158,14 +182,47 @@ async function loadConfigs() {
   }
 }
 
-useEffect(() => {
-  loadConfigs();
-}, []);
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadConfigs();
+    }
+  }, [isAuthenticated]);
+
+    if (isLoading) {
+      return <p>Loading authentication...</p>;
+    }
+
+  if (!isAuthenticated) {
+    return (
+      <main className="app">
+        <h1 className="app-title">Image Cropper App</h1>
+
+        <button onClick={() => loginWithRedirect()}>Login with Auth0</button>
+      </main>
+    );
+  }
+
+
+
 
   return (
     <main className="app">
       <h1 className="app-title">Image Cropper App</h1>
+      <div style={{ marginBottom: "20px" }}>
+        <p>Logged in as: {user?.name}</p>
 
+        <button
+          onClick={() =>
+            logout({
+              logoutParams: {
+                returnTo: window.location.origin,
+              },
+            })
+          }
+        >
+          Logout
+        </button>
+      </div>
       <ConfigForm
         onSaveConfig={handleSaveConfig}
         configs={configs}

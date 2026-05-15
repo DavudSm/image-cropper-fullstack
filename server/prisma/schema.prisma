@@ -8,6 +8,7 @@ datasource db {
 
 model Config {
   id            Int      @id @default(autoincrement())
+  userId        String
   scaleDown     Float
   logoPosition  String
   logoImagePath String

@@ -38,8 +38,11 @@ export async function createConfigController(req, res) {
     });
   }
 
+  const userId = req.auth.payload.sub;
+
   const config = await prisma.config.create({
     data: {
+      userId,
       scaleDown: parsedScaleDown,
       logoPosition,
       logoImagePath: req.file.path,
@@ -86,11 +89,16 @@ export async function updateConfigController(req, res) {
 }
 
 export async function getConfigsController(req, res) {
-  const configs = await prisma.config.findMany({
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+const userId = req.auth.payload.sub;
+
+const configs = await prisma.config.findMany({
+  where: {
+    userId,
+  },
+  orderBy: {
+    createdAt: "desc",
+  },
+});
 
   return res.json({
     configs,

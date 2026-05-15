@@ -68,8 +68,7 @@ const ConfigForm = ({
 
               {configs.map((config) => (
                 <option key={config.id} value={config.id}>
-                  ID {config.id} - {config.logoPosition} - scale{" "}
-                  {config.scaleDown}
+                  {config.logoPosition} | scale {config.scaleDown}
                 </option>
               ))}
             </select>

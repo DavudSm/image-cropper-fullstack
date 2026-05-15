@@ -78,14 +78,20 @@ const { configId } = req.body;
 
 let config;
 
+const userId = req.auth.payload.sub;
+
 if (configId) {
-  config = await prisma.config.findUnique({
+  config = await prisma.config.findFirst({
     where: {
       id: Number(configId),
+      userId,
     },
   });
 } else {
   config = await prisma.config.findFirst({
+    where: {
+      userId,
+    },
     orderBy: {
       createdAt: "desc",
     },

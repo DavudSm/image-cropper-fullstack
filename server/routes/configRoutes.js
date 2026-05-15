@@ -7,12 +7,16 @@ import {
   getConfigsController,
 } from "../controllers/configController.js";
 
+import { checkJwt } from "../middleware/auth.js";
+
 const router = express.Router();
 
-router.get("/", getConfigsController);
 
-router.post("/", upload.single("logoImage"), createConfigController);
 
-router.put("/:id", updateConfigController);
+router.get("/", checkJwt, getConfigsController);
+
+router.post("/", checkJwt, upload.single("logoImage"), createConfigController);
+
+router.put("/:id", checkJwt, updateConfigController);
 
 export default router;
