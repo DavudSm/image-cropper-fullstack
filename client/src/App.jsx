@@ -192,16 +192,43 @@ async function loadConfigs() {
       return <p>Loading authentication...</p>;
     }
 
-  if (!isAuthenticated) {
-    return (
-      <main className="app">
-        <h1 className="app-title">Image Cropper App</h1>
+if (!isAuthenticated) {
+  return (
+    <main className="auth-page">
+      <section className="auth-card">
+        <div className="auth-badge">Fullstack Image Tool</div>
 
-        <button onClick={() => loginWithRedirect()}>Login with Auth0</button>
-      </main>
-    );
-  }
+        <h1 className="auth-title">Image Cropper App</h1>
 
+        <p className="auth-description">
+          Upload, crop, preview and generate branded images with saved logo
+          configurations.
+        </p>
+
+        <div className="auth-preview">
+          <div className="preview-frame">
+            <div className="preview-image-shape">
+              <span>Crop Area</span>
+            </div>
+
+            <div className="logo-chip">Logo</div>
+          </div>
+        </div>
+
+        <div className="auth-stack">
+          React • Express • Prisma • PostgreSQL • Docker
+        </div>
+
+        <button
+          className="auth-login-button"
+          onClick={() => loginWithRedirect()}
+        >
+          Login with Auth0
+        </button>
+      </section>
+    </main>
+  );
+}
 
 
 

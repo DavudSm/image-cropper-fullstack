@@ -187,3 +187,101 @@ button {
 
   object-fit: contain;
 }
+
+.auth-page {
+  width: 100%;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 40px 20px;
+}
+
+.auth-card {
+  width: min(720px, 100%);
+  padding: 42px;
+  border-radius: 28px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.auth-card .auth-badge {
+  display: inline-flex;
+  margin-bottom: 18px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.14);
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  color: #bfdbfe;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-card .auth-title {
+  margin: 0;
+  font-size: 44px;
+  line-height: 1.1;
+  color: #f8fafc;
+}
+
+.auth-card .auth-description {
+  max-width: 540px;
+  margin: 18px auto 28px;
+  color: #cbd5e1;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.auth-card .auth-preview {
+  margin: 28px auto;
+  max-width: 440px;
+}
+
+.auth-card .preview-frame {
+  position: relative;
+  height: 240px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+
+.auth-card .preview-image-shape {
+  position: absolute;
+  inset: 34px;
+  border-radius: 20px;
+  border: 2px dashed rgba(148, 163, 184, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 15px;
+}
+
+.auth-card .logo-chip {
+  position: absolute;
+  right: 34px;
+  bottom: 34px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.auth-card .auth-stack {
+  margin-bottom: 26px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.auth-card .auth-login-button {
+  padding: 13px 24px;
+  border-radius: 14px;
+  background: linear-gradient(to right, #2563eb, #7c3aed);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+}
