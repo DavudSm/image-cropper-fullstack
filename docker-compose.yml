@@ -18,7 +18,7 @@ services:
       DATABASE_URL: postgresql://postgres:password@postgres:5432/image_cropper_db
       AUTH0_DOMAIN: dev-z8ecymffamlxli4p.us.auth0.com
       AUTH0_AUDIENCE: https://image-cropper-api
-    command: sh -c "npx wait-on tcp:postgres:5432 && npx prisma migrate deploy && npm run dev"
+    command: sh -c "npx wait-on tcp:postgres:5432 && npx prisma generate && npx prisma migrate deploy && npm run dev"
     depends_on:
       - postgres
 
